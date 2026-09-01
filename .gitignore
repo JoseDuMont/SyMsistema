@@ -1,0 +1,33 @@
+# Dependencias de Composer
+/vendor/
+
+# Datos y contenido de clientes
+/public/site/
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+/logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*~
+
+# Backups
+*.bak
+*.backup
+
+# Sistema operativo / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Recursos 3D/panorama de prueba locales
+/public/assets/panorama/test*

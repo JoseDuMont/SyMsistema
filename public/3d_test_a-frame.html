@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>Dédalo - A-Frame GLB Test</title>
+
+    <script src="./assets/vendor/aframe/1.5.0/aframe.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        a-scene {
+            width: 100%;
+            height: 100%;
+        }
+
+        #stats {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+
+            padding: 8px 10px;
+
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+
+            font-family: monospace;
+            font-size: 12px;
+
+            border-radius: 6px;
+
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="stats">
+    Cargando...
+</div>
+
+<a-scene
+    renderer="
+        antialias: true;
+        colorManagement: true;
+        physicallyCorrectLights: true;
+    "
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+>
+
+    <!-- Panorama -->
+    <a-sky
+        src="./assets/panorama/imagentest2.jpg"
+        rotation="0 -90 0">
+    </a-sky>
+
+
+    <!-- Cámara -->
+    <a-entity
+        id="camera"
+        camera
+        position="0 1.6 0"
+        look-controls="enabled: true">
+    </a-entity>
+
+
+    <!-- Iluminación mínima -->
+    <a-light
+        type="ambient"
+        intensity="1.2">
+    </a-light>
+
+
+    <!-- GLB -->
+    <a-entity
+        id="modelo"
+        gltf-model="./assets/models/cubo.glb"
+        position="0 1.2 -3"
+        scale="1 1 1">
+    </a-entity>
+
+</a-scene>
+
+
+<script>
+
+const stats = document.getElementById('stats');
+
+let frames = 0;
+let lastTime = performance.now();
+let fps = 0;
+
+function medir() {
+
+    const now = performance.now();
+
+    frames++;
+
+    if (now - lastTime >= 1000) {
+
+        fps = frames;
+
+        frames = 0;
+        lastTime = now;
+
+        const renderer = document.querySelector('a-scene').renderer;
+
+        let dpr = window.devicePixelRatio;
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+
+        stats.innerHTML =
+            `FPS: ${fps}<br>` +
+            `DPR: ${dpr.toFixed(2)}<br>` +
+            `Viewport: ${width} × ${height}<br>` +
+            `GLB: cargado`;
+    }
+
+    requestAnimationFrame(medir);
+}
+
+medir();
+
+
+// Detectar carga del modelo
+const modelo = document.getElementById('modelo');
+
+modelo.addEventListener('model-loaded', () => {
+
+    console.log('GLB cargado correctamente');
+
+    stats.innerHTML =
+        `GLB cargado ✓<br>` +
+        `DPR: ${window.devicePixelRatio.toFixed(2)}<br>` +
+        `Viewport: ${window.innerWidth} × ${window.innerHeight}`;
+});
+
+
+modelo.addEventListener('model-error', (event) => {
+
+    console.error('Error cargando GLB:', event);
+
+    stats.innerHTML =
+        `ERROR cargando GLB`;
+});
+
+</script>
+
+</body>
+</html>

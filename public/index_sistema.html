@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SDI - Documento Maestro</title>
+
+<style>
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f5f7fa;
+    color:#333;
+    margin:40px;
+    line-height:1.7;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:white;
+    padding:40px;
+    border-radius:10px;
+    box-shadow:0 0 20px rgba(0,0,0,.08);
+}
+
+h1,h2{
+    color:#1f4e79;
+}
+
+h3{
+    color:#2f6fa6;
+}
+
+hr{
+    margin:30px 0;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+table th,
+table td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+table th{
+    background:#1f4e79;
+    color:white;
+}
+
+pre{
+    background:#f4f4f4;
+    padding:15px;
+    border-radius:6px;
+    overflow:auto;
+}
+
+.ok{
+    color:#008000;
+    font-weight:bold;
+}
+
+.progress{
+    color:#d98c00;
+    font-weight:bold;
+}
+
+.todo{
+    color:#999;
+}
+
+.footer{
+    margin-top:60px;
+    border-top:1px solid #ccc;
+    padding-top:20px;
+    font-size:.9em;
+}
+
+blockquote{
+    background:#eef6ff;
+    border-left:5px solid #1f4e79;
+    padding:15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📘 Sistema Documental Inteligente (SDI)</h1>
+
+<h3>Documento Maestro (Borrador)</h3>
+
+<p>
+Versión Arquitectónica 0.1<br>
+Estado: Proyecto Piloto
+</p>
+
+<hr>
+
+<h2>Visión</h2>
+
+<p>
+
+Construir una plataforma documental privada, escalable y segura, donde Linux es la fuente de verdad y la base de datos funciona como un índice documental inteligente.
+
+El objetivo final es disponer de un sistema completamente documentado, reproducible y publicado como software libre.
+
+</p>
+
+<blockquote>
+
+Primero comprender.<br>
+Después diseñar.<br>
+Finalmente programar.
+
+</blockquote>
+
+<hr>
+
+<h2>Objetivos</h2>
+
+<ul>
+
+<li>✔ Sistema documental privado.</li>
+
+<li>✔ Arquitectura modular.</li>
+
+<li>✔ IA integrada.</li>
+
+<li>✔ OCR.</li>
+
+<li>✔ Control de versiones.</li>
+
+<li>✔ Flutter como cliente oficial.</li>
+
+<li>✔ API REST.</li>
+
+<li>✔ Seguridad desde el diseño.</li>
+
+<li>✔ Documentación completa.</li>
+
+<li>✔ Publicación futura en GitHub.</li>
+
+</ul>
+
+<hr>
+
+<h2>Infraestructura</h2>
+
+<pre>
+
+Ubuntu Desktop
+
+Docker
+Traefik
+Nginx
+PHP
+MySQL
+Cloudflare Tunnel
+
+Syncthing
+Ollama
+n8n
+
+Intel i5-3320M
+8 GB RAM
+
+</pre>
+
+<hr>
+
+<h2>Arquitectura General</h2>
+
+<pre>
+
+                 Flutter
+                    │
+                    ▼
+               API REST
+                    │
+                    ▼
+         /srv/disco2/folder
+                    │
+                    ▼
+         Servicio de Indexación
+                    │
+                    ▼
+                 MySQL
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+    Filesystem UI          Chat IA
+
+</pre>
+
+<hr>
+
+<h2>Filosofía del Proyecto</h2>
+
+<ul>
+
+<li>Linux es la fuente de verdad.</li>
+
+<li>MySQL funciona únicamente como índice documental.</li>
+
+<li>La IA nunca modifica directamente el filesystem.</li>
+
+<li>El sistema debe ser reproducible.</li>
+
+<li>La simplicidad tiene prioridad sobre la complejidad.</li>
+
+<li>Todo cambio importante debe quedar documentado.</li>
+
+</ul>
+
+<hr>
+
+<h2>Estado Actual</h2>
+
+<table>
+
+<tr>
+
+<th>Módulo</th>
+
+<th>Estado</th>
+
+</tr>
+
+<tr>
+
+<td>MVC</td>
+
+<td class="ok">Completo</td>
+
+</tr>
+
+<tr>
+
+<td>Login / Roles</td>
+
+<td class="ok">Completo</td>
+
+</tr>
+
+<tr>
+
+<td>Dashboard</td>
+
+<td class="ok">Completo</td>
+
+</tr>
+
+<tr>
+
+<td>Indexador</td>
+
+<td class="ok">scan_folders + scan_files</td>
+
+</tr>
+
+<tr>
+
+<td>MIME Type</td>
+
+<td class="ok">Implementado</td>
+
+</tr>
+
+<tr>
+
+<td>UUID v7</td>
+
+<td class="progress">En diseño</td>
+
+</tr>
+
+<tr>
+
+<td>Filesystem UI</td>
+
+<td class="progress">Diseño</td>
+
+</tr>
+
+<tr>
+
+<td>Logs</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+<tr>
+
+<td>API</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+<tr>
+
+<td>Flutter</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+<tr>
+
+<td>OCR</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+<tr>
+
+<td>IA</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+<tr>
+
+<td>Ciberseguridad</td>
+
+<td class="todo">Pendiente</td>
+
+</tr>
+
+</table>
+
+<hr>
+
+<h2>Decisiones Arquitectónicas</h2>
+
+<ul>
+
+<li>✔ Syncthing queda como infraestructura.</li>
+
+<li>✔ Flutter será el cliente oficial.</li>
+
+<li>✔ Linux es la fuente de verdad.</li>
+
+<li>✔ El Full Scan es idempotente.</li>
+
+<li>✔ SHA256 únicamente cuando el sistema modifica archivos.</li>
+
+<li>✔ UUID v7 como identidad pública.</li>
+
+<li>✔ Versionado únicamente para archivos de texto.</li>
+
+<li>✔ Filesystem UI totalmente en modo lectura.</li>
+
+<li>✔ La IA actuará como asistente documental.</li>
+
+</ul>
+
+<hr>
+
+<h2>Roadmap</h2>
+
+<pre>
+
+SDI-001  Autenticación                 ✔
+
+SDI-002  Usuarios y Roles              ✔
+
+SDI-003  Indexador                     ✔
+
+SDI-004  Scan Files/Folders            ✔
+
+SDI-005  UUID                          ▶
+
+SDI-006  Filesystem UI                 ▶
+
+SDI-007  Logs                          ○
+
+SDI-008  API                           ○
+
+SDI-009  Flutter                       ○
+
+SDI-010  OCR                           ○
+
+SDI-011  IA                            ○
+
+SDI-012  Ciberseguridad                ○
+
+SDI-013  Publicación GitHub            ○
+
+</pre>
+
+<hr>
+
+<h2>Metas Finales</h2>
+
+<ul>
+
+<li>Portal documental empresarial.</li>
+
+<li>Cliente multiplataforma Flutter.</li>
+
+<li>IA integrada al filesystem.</li>
+
+<li>OCR y búsqueda inteligente.</li>
+
+<li>Control de versiones.</li>
+
+<li>Auditoría completa.</li>
+
+<li>Instalación automatizada desde Ubuntu.</li>
+
+<li>Manual completo de despliegue.</li>
+
+<li>Manual de operación.</li>
+
+<li>Manual de ciberseguridad.</li>
+
+<li>Software Libre.</li>
+
+</ul>
+
+<hr>
+
+<h2>Próximo Paso</h2>
+
+<p>
+
+Implementar el módulo <strong>SDI-005 (UUID)</strong>:
+
+</p>
+
+<ul>
+
+<li>Agregar UUID v7 a <strong>folders</strong>.</li>
+
+<li>Agregar UUID v7 a <strong>files</strong>.</li>
+
+<li>Modificar <strong>scan_folders.php</strong>.</li>
+
+<li>Modificar <strong>scan_files.php</strong>.</li>
+
+<li>Crear script de migración.</li>
+
+<li>Continuar con SDI-007 (Logs).</li>
+
+</ul>
+
+<div class="footer">
+
+<strong>Proyecto:</strong> Sistema Documental Inteligente (SDI)<br>
+
+<strong>Estado:</strong> Piloto Arquitectónico<br>
+
+<strong>Objetivo:</strong> Plataforma documental inteligente, segura y de software libre.<br>
+
+<strong>Licencia futura:</strong> Open Source<br>
+
+<strong>Documentación:</strong> Documento Maestro SDI<br>
+
+</div>
+
+</div>
+
+</body>
+</html>

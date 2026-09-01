@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dédalo — A-Frame + GLB</title>
+
+ <script src="./assets/vendor/aframe/1.5.0/aframe.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #metrics {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+
+            padding: 10px 14px;
+
+            color: #fff;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.5;
+
+            background: rgba(0, 0, 0, 0.65);
+            border-radius: 8px;
+
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="metrics">
+        Loading...
+    </div>
+
+    <a-scene
+        embedded
+        vr-mode-ui="enabled: false"
+        renderer="
+            antialias: true;
+            precision: mediump
+        "
+    >
+
+        <a-assets timeout="10000">
+
+            <img
+                id="panorama"
+                src="./assets/panorama/test3.jpg"
+            >
+
+            <a-asset-item
+                id="cubo"
+                src="./assets/models/cubo.glb"
+            ></a-asset-item>
+
+        </a-assets>
+
+
+        <!-- Panorama 360 -->
+
+        <a-sky
+            src="#panorama"
+            rotation="0 -90 0"
+        ></a-sky>
+
+
+        <!-- Cubo GLB -->
+
+        <a-entity
+            id="modelo"
+            gltf-model="#cubo"
+            position="0 0 -3"
+            rotation="0 0 0"
+            scale="1 1 1"
+        ></a-entity>
+
+
+        <!-- Cámara -->
+
+        <a-entity
+            camera
+            look-controls
+            position="0 1.6 0"
+        ></a-entity>
+
+    </a-scene>
+
+<script>
+const metrics = document.getElementById('metrics');
+
+const testStart = performance.now();
+
+let pageTime = null;
+let panoramaTime = null;
+let glbTime = null;
+let sceneReadyTime = null;
+
+let panoramaLoaded = false;
+let glbLoaded = false;
+
+let panoramaError = false;
+let glbError = false;
+
+
+/* =========================
+   PAGE LOAD
+========================= */
+
+window.addEventListener('load', () => {
+
+    pageTime = performance.now() - testStart;
+
+    console.log(
+        'Página cargada:',
+        pageTime.toFixed(2),
+        'ms'
+    );
+
+});
+
+
+/* =========================
+   PANORAMA
+========================= */
+
+const panoramaAsset =
+    document.getElementById('panorama');
+
+if (!panoramaAsset) {
+
+    console.error(
+        'DÉDALO: No se encontró #panorama'
+    );
+
+    panoramaError = true;
+
+} else {
+
+    panoramaAsset.addEventListener('load', () => {
+
+        if (!panoramaLoaded) {
+
+            panoramaLoaded = true;
+
+            panoramaTime =
+                performance.now() - testStart;
+
+            console.log(
+                'Panorama cargado:',
+                panoramaTime.toFixed(2),
+                'ms'
+            );
+
+            verificarEscena();
+        }
+
+    });
+
+
+    panoramaAsset.addEventListener('error', () => {
+
+        panoramaError = true;
+
+        console.error(
+            'Error cargando panorama'
+        );
+
+    });
+
+}
+
+
+/* =========================
+   GLB
+========================= */
+
+const modelo =
+    document.getElementById('modelo');
+
+if (!modelo) {
+
+    console.error(
+        'DÉDALO: No se encontró #modelo'
+    );
+
+    glbError = true;
+
+} else {
+
+    modelo.addEventListener(
+        'model-loaded',
+        () => {
+
+            if (!glbLoaded) {
+
+                glbLoaded = true;
+
+                glbTime =
+                    performance.now() - testStart;
+
+                console.log(
+                    'GLB cargado:',
+                    glbTime.toFixed(2),
+                    'ms'
+                );
+
+                verificarEscena();
+            }
+
+        }
+    );
+
+
+    modelo.addEventListener(
+        'model-error',
+        (event) => {
+
+            glbError = true;
+
+            console.error(
+                'Error cargando GLB:',
+                event
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================
+   SCENE READY
+========================= */
+
+function verificarEscena() {
+
+    if (
+        panoramaLoaded &&
+        glbLoaded &&
+        sceneReadyTime === null
+    ) {
+
+        sceneReadyTime =
+            performance.now() - testStart;
+
+        console.log(
+            'Escena lista:',
+            sceneReadyTime.toFixed(2),
+            'ms'
+        );
+
+    }
+
+}
+
+
+/* =========================
+   PERFORMANCE
+========================= */
+
+let frames = 0;
+let fps = 0;
+
+let lastSecond =
+    performance.now();
+
+let lastFrame =
+    performance.now();
+
+let currentFrameTime = 0;
+
+let peakFrame = 0;
+
+
+function medir(now) {
+
+    currentFrameTime =
+        now - lastFrame;
+
+    lastFrame = now;
+
+
+    if (
+        currentFrameTime > peakFrame
+    ) {
+
+        peakFrame =
+            currentFrameTime;
+
+    }
+
+
+    frames++;
+
+
+    if (
+        now - lastSecond >= 1000
+    ) {
+
+        fps = frames;
+
+        frames = 0;
+
+        lastSecond = now;
+
+
+        const currentPeak =
+            peakFrame;
+
+        peakFrame = 0;
+
+
+        let panoramaStatus =
+            'Loading...';
+
+        if (panoramaLoaded) {
+
+            panoramaStatus =
+                (
+                    panoramaTime / 1000
+                ).toFixed(2) + ' s';
+
+        }
+
+        if (panoramaError) {
+
+            panoramaStatus =
+                'ERROR';
+
+        }
+
+
+        let glbStatus =
+            'Loading...';
+
+        if (glbLoaded) {
+
+            glbStatus =
+                (
+                    glbTime / 1000
+                ).toFixed(2) + ' s';
+
+        }
+
+        if (glbError) {
+
+            glbStatus =
+                'ERROR';
+
+        }
+
+
+        let sceneStatus =
+            'Waiting...';
+
+        if (
+            sceneReadyTime !== null
+        ) {
+
+            sceneStatus =
+                (
+                    sceneReadyTime / 1000
+                ).toFixed(2) + ' s';
+
+        }
+
+
+        if (metrics) {
+
+            metrics.innerHTML = `
+                <strong>DÉDALO F-002-A</strong>
+                <hr>
+
+                Page:
+                ${
+                    pageTime !== null
+                        ? (
+                            pageTime / 1000
+                        ).toFixed(2) + ' s'
+                        : 'Loading...'
+                }
+
+                <br>
+
+                Panorama:
+                ${panoramaStatus}
+
+                <br>
+
+                GLB:
+                ${glbStatus}
+
+                <br>
+
+                Scene:
+                ${sceneStatus}
+
+                <hr>
+
+                FPS:
+                ${fps}
+
+                <br>
+
+                Frame:
+                ${currentFrameTime.toFixed(2)} ms
+
+                <br>
+
+                Peak:
+                ${currentPeak.toFixed(2)} ms
+
+                <br>
+
+                DPR:
+                ${window.devicePixelRatio.toFixed(2)}
+
+                <br>
+
+                Resolution:
+                ${window.innerWidth}
+                ×
+                ${window.innerHeight}
+            `;
+
+        }
+
+    }
+
+
+    requestAnimationFrame(medir);
+
+}
+
+
+requestAnimationFrame(medir);
+</script>
+</body>
+</html>

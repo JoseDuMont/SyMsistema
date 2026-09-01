@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dédalo F-002-B · Three.js + GLB</title>
+
+
+    <!-- =========================================
+         IMPORT MAP
+    ========================================= -->
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "./assets/vendor/three/0.160.1/three.module.js"
+        }
+    }
+    </script>
+
+
+    <style>
+
+        /* =========================================
+           BASE
+        ========================================= */
+
+        html,
+        body {
+
+            margin: 0;
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+            background: #000;
+
+        }
+
+
+        /* =========================================
+           THREE CONTAINER
+        ========================================= */
+
+        #three-container {
+
+            position: fixed;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+        }
+
+
+        #three-container canvas {
+
+            display: block;
+
+            width: 100%;
+            height: 100%;
+
+        }
+
+
+        /* =========================================
+           DÉDALO CONSOLE
+        ========================================= */
+
+        #dedalo-console {
+
+            position: fixed;
+
+            top: 16px;
+            left: 16px;
+
+            z-index: 9999;
+
+            min-width: 240px;
+
+            padding: 14px 16px;
+
+            color: #d7ffe4;
+
+            background:
+                rgba(5, 15, 10, 0.82);
+
+            border:
+                1px solid rgba(120, 255, 170, 0.25);
+
+            border-radius: 12px;
+
+            font-family: monospace;
+
+            font-size: 12px;
+
+            line-height: 1.65;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            backdrop-filter:
+                blur(8px);
+
+            -webkit-backdrop-filter:
+                blur(8px);
+
+        }
+
+
+        #dedalo-console strong {
+
+            color: #7cffab;
+
+        }
+
+
+        @media (max-width: 350px) {
+
+            #dedalo-console {
+
+                top: 8px;
+                left: 8px;
+
+                min-width: auto;
+
+                padding: 10px 12px;
+
+                font-size: 10px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         THREE
+    ========================================= -->
+
+    <div id="three-container"></div>
+
+
+    <!-- =========================================
+         DÉDALO PERFORMANCE CONSOLE
+    ========================================= -->
+
+    <div id="dedalo-console">
+
+        <strong>
+            DÉDALO · F-002-B
+        </strong>
+
+        <br>
+
+        Engine:
+        Three.js
+
+        <br>
+
+        Page:
+        <span id="page">
+            Loading...
+        </span>
+
+        <br>
+
+        Panorama:
+        <span id="panorama-time">
+            Loading...
+        </span>
+
+        <br>
+
+        GLB:
+        <span id="glb-time">
+            Loading...
+        </span>
+
+        <br>
+
+        Scene:
+        <span id="scene-time">
+            Waiting...
+        </span>
+
+        <hr>
+
+        FPS:
+        <span id="fps">
+            --
+        </span>
+
+        <br>
+
+        Frame:
+        <span id="frame">
+            --
+        </span>
+        ms
+
+        <br>
+
+        Peak:
+        <span id="peak">
+            --
+        </span>
+        ms
+
+        <br>
+
+        DPR:
+        <span id="dpr">
+            --
+        </span>
+
+        <br>
+
+        Resolution:
+        <span id="resolution">
+            --
+        </span>
+
+        <br>
+
+        Visibility:
+        <span id="visibility">
+            --
+        </span>
+
+    </div>
+
+
+    <!-- =========================================
+         THREE.JS
+    ========================================= -->
+
+    <script type="module">
+
+        import * as THREE from
+            'three';
+
+
+        import {
+            GLTFLoader
+        } from
+            './assets/vendor/three/0.160.1/examples/jsm/loaders/GLTFLoader.js';
+
+
+        /* =========================================
+           ELEMENTOS
+        ========================================= */
+
+        const container =
+            document.getElementById(
+                'three-container'
+            );
+
+
+        const pageElement =
+            document.getElementById(
+                'page'
+            );
+
+
+        const panoramaTimeElement =
+            document.getElementById(
+                'panorama-time'
+            );
+
+
+        const glbTimeElement =
+            document.getElementById(
+                'glb-time'
+            );
+
+
+        const sceneTimeElement =
+            document.getElementById(
+                'scene-time'
+            );
+
+
+        const fpsElement =
+            document.getElementById(
+                'fps'
+            );
+
+
+        const frameElement =
+            document.getElementById(
+                'frame'
+            );
+
+
+        const peakElement =
+            document.getElementById(
+                'peak'
+            );
+
+
+        const dprElement =
+            document.getElementById(
+                'dpr'
+            );
+
+
+        const resolutionElement =
+            document.getElementById(
+                'resolution'
+            );
+
+
+        const visibilityElement =
+            document.getElementById(
+                'visibility'
+            );
+
+
+        /* =========================================
+           TEST
+        ========================================= */
+
+        const testStart =
+            performance.now();
+
+
+        let panoramaTime = null;
+
+        let glbTime = null;
+
+        let sceneTime = null;
+
+
+        let panoramaLoaded = false;
+
+        let glbLoaded = false;
+
+
+        /* =========================================
+           PANORAMA
+
+           IMPORTANTE:
+
+           La variable empieza como null.
+           Durante la carga NO intentamos acceder
+           a rotation.
+        ========================================= */
+
+        let panorama = null;
+
+
+        /* =========================================
+           SCENE
+        ========================================= */
+
+        const scene =
+            new THREE.Scene();
+
+
+        /* =========================================
+           CAMERA
+        ========================================= */
+
+        const camera =
+            new THREE.PerspectiveCamera(
+
+                75,
+
+                window.innerWidth /
+                window.innerHeight,
+
+                0.1,
+
+                1000
+
+            );
+
+
+        camera.position.set(
+
+            0,
+            1.6,
+            0
+
+        );
+
+
+        /* =========================================
+           RENDERER
+        ========================================= */
+
+        const renderer =
+            new THREE.WebGLRenderer({
+
+                antialias: true
+
+            });
+
+
+        renderer.setSize(
+
+            window.innerWidth,
+
+            window.innerHeight
+
+        );
+
+
+        renderer.setPixelRatio(
+
+            window.devicePixelRatio
+
+        );
+
+
+        renderer.outputColorSpace =
+            THREE.SRGBColorSpace;
+
+
+        container.appendChild(
+            renderer.domElement
+        );
+
+
+        /* =========================================
+           LIGHTS
+
+           Solamente para el GLB.
+           El panorama utiliza MeshBasicMaterial.
+        ========================================= */
+
+        const ambientLight =
+            new THREE.AmbientLight(
+
+                0xffffff,
+                1.5
+
+            );
+
+
+        scene.add(
+            ambientLight
+        );
+
+
+        const directionalLight =
+            new THREE.DirectionalLight(
+
+                0xffffff,
+                2
+
+            );
+
+
+        directionalLight.position.set(
+
+            2,
+            4,
+            3
+
+        );
+
+
+        scene.add(
+            directionalLight
+        );
+
+
+        /* =========================================
+           PANORAMA 360
+        ========================================= */
+
+        const textureLoader =
+            new THREE.TextureLoader();
+
+
+        textureLoader.load(
+
+            './assets/panorama/test3.jpg',
+
+
+            function (texture) {
+
+                console.log(
+                    'Textura panorama cargada'
+                );
+
+
+                texture.colorSpace =
+                    THREE.SRGBColorSpace;
+
+
+                const geometry =
+                    new THREE.SphereGeometry(
+
+                        100,
+                        64,
+                        40
+
+                    );
+
+
+                /*
+                 * Invertimos la esfera para
+                 * mirar desde dentro.
+                 */
+
+                geometry.scale(
+
+                    -1,
+                    1,
+                    1
+
+                );
+
+
+                const material =
+                    new THREE.MeshBasicMaterial({
+
+                        map: texture
+
+                    });
+
+
+                /*
+                 * AQUÍ se crea realmente
+                 * el objeto panorama.
+                 */
+
+                panorama =
+                    new THREE.Mesh(
+
+                        geometry,
+                        material
+
+                    );
+
+
+                panorama.rotation.y =
+                    THREE.MathUtils.degToRad(
+                        -90
+                    );
+
+
+                scene.add(
+                    panorama
+                );
+
+
+                panoramaLoaded = true;
+
+
+                panoramaTime =
+                    performance.now() -
+                    testStart;
+
+
+                panoramaTimeElement.textContent =
+
+                    (
+                        panoramaTime /
+                        1000
+                    ).toFixed(2) + ' s';
+
+
+                console.log(
+
+                    'Panorama cargado:',
+
+                    panoramaTime.toFixed(2),
+
+                    'ms'
+
+                );
+
+
+                verificarEscena();
+
+            },
+
+
+            undefined,
+
+
+            function (error) {
+
+                console.error(
+
+                    'Error al cargar panorama:',
+                    error
+
+                );
+
+
+                panoramaTimeElement.textContent =
+                    'ERROR';
+
+            }
+
+        );
+
+
+        /* =========================================
+           GLB
+        ========================================= */
+
+        const gltfLoader =
+            new GLTFLoader();
+
+
+        gltfLoader.load(
+
+            './assets/models/cubo.glb',
+
+
+            function (gltf) {
+
+                console.log(
+                    'Modelo GLB cargado'
+                );
+
+
+                const modelo =
+                    gltf.scene;
+
+
+                /*
+                 * Misma posición utilizada
+                 * durante la prueba exitosa.
+                 */
+
+                modelo.position.set(
+
+                    0,
+                    1.6,
+                    -3
+
+                );
+
+
+                modelo.rotation.set(
+
+                    0,
+                    0,
+                    0
+
+                );
+
+
+                modelo.scale.set(
+
+                    1,
+                    1,
+                    1
+
+                );
+
+
+                scene.add(
+                    modelo
+                );
+
+
+                glbLoaded = true;
+
+
+                glbTime =
+                    performance.now() -
+                    testStart;
+
+
+                glbTimeElement.textContent =
+
+                    (
+                        glbTime /
+                        1000
+                    ).toFixed(2) + ' s';
+
+
+                console.log(
+
+                    'GLB cargado:',
+
+                    glbTime.toFixed(2),
+
+                    'ms'
+
+                );
+
+
+                verificarEscena();
+
+            },
+
+
+            undefined,
+
+
+            function (error) {
+
+                console.error(
+
+                    'Error cargando GLB:',
+                    error
+
+                );
+
+
+                glbTimeElement.textContent =
+                    'ERROR';
+
+            }
+
+        );
+
+
+        /* =========================================
+           ESCENA LISTA
+        ========================================= */
+
+        function verificarEscena() {
+
+            if (
+
+                panoramaLoaded &&
+                glbLoaded &&
+                sceneTime === null
+
+            ) {
+
+                sceneTime =
+                    performance.now() -
+                    testStart;
+
+
+                sceneTimeElement.textContent =
+
+                    (
+                        sceneTime /
+                        1000
+                    ).toFixed(2) + ' s';
+
+
+                console.log(
+
+                    'Escena lista:',
+
+                    sceneTime.toFixed(2),
+
+                    'ms'
+
+                );
+
+            }
+
+        }
+
+
+        /* =========================================
+           AUTO ROTATE
+        ========================================= */
+
+        const rotationSpeed =
+            THREE.MathUtils.degToRad(
+                2
+            );
+
+
+        let lastRenderTime =
+            performance.now();
+
+
+        let isVisible =
+            document.visibilityState ===
+            'visible';
+
+
+        /* =========================================
+           ANIMATION LOOP
+        ========================================= */
+
+        function animate(now) {
+
+            /*
+             * Siempre calculamos el delta.
+             */
+
+            const deltaTime =
+
+                (
+                    now -
+                    lastRenderTime
+                ) / 1000;
+
+
+            lastRenderTime =
+                now;
+
+
+            /*
+             * SOLO giramos cuando
+             * panorama realmente existe.
+             */
+
+            if (
+                isVisible &&
+                panorama !== null
+            ) {
+
+                panorama.rotation.y +=
+
+                    rotationSpeed *
+                    deltaTime;
+
+            }
+
+
+            /*
+             * Renderizamos siempre.
+             *
+             * Esto es importante:
+             * la escena puede empezar negra
+             * mientras cargan los recursos,
+             * pero en cuanto llegan se dibujan.
+             */
+
+            if (isVisible) {
+
+                renderer.render(
+
+                    scene,
+                    camera
+
+                );
+
+            }
+
+
+            requestAnimationFrame(
+                animate
+            );
+
+        }
+
+
+        /*
+         * INICIO DEL RENDER
+         */
+
+        requestAnimationFrame(
+            animate
+        );
+
+
+        /* =========================================
+           RESOLUTION
+        ========================================= */
+
+        function updateResolution() {
+
+            dprElement.textContent =
+
+                window.devicePixelRatio.toFixed(
+                    2
+                );
+
+
+            resolutionElement.textContent =
+
+                `${window.innerWidth} × ${window.innerHeight}`;
+
+        }
+
+
+        updateResolution();
+
+
+        /* =========================================
+           RESIZE
+        ========================================= */
+
+        window.addEventListener(
+
+            'resize',
+
+            function () {
+
+                camera.aspect =
+
+                    window.innerWidth /
+                    window.innerHeight;
+
+
+                camera.updateProjectionMatrix();
+
+
+                renderer.setSize(
+
+                    window.innerWidth,
+                    window.innerHeight
+
+                );
+
+
+                renderer.setPixelRatio(
+
+                    window.devicePixelRatio
+
+                );
+
+
+                updateResolution();
+
+            }
+
+        );
+
+
+        /* =========================================
+           VISIBILITY
+        ========================================= */
+
+        function updateVisibility() {
+
+            isVisible =
+
+                document.visibilityState ===
+                'visible';
+
+
+            visibilityElement.textContent =
+
+                document.visibilityState;
+
+
+            lastRenderTime =
+                performance.now();
+
+        }
+
+
+        updateVisibility();
+
+
+        document.addEventListener(
+
+            'visibilitychange',
+
+            updateVisibility
+
+        );
+
+
+        /* =========================================
+           PAGE LOAD
+        ========================================= */
+
+        window.addEventListener(
+
+            'load',
+
+            function () {
+
+                const pageTime =
+
+                    performance.now() -
+                    testStart;
+
+
+                pageElement.textContent =
+
+                    (
+                        pageTime /
+                        1000
+                    ).toFixed(2) + ' s';
+
+            }
+
+        );
+
+
+        /* =========================================
+           PERFORMANCE MONITOR
+        ========================================= */
+
+        let frames = 0;
+
+        let fpsStart =
+            performance.now();
+
+        let lastFrame =
+            performance.now();
+
+        let currentFrameTime = 0;
+
+        let peakFrameTime = 0;
+
+
+        function monitor(now) {
+
+            const delta =
+
+                now -
+                lastFrame;
+
+
+            lastFrame =
+                now;
+
+
+            if (isVisible) {
+
+                currentFrameTime =
+                    delta;
+
+
+                if (
+                    delta >
+                    peakFrameTime
+                ) {
+
+                    peakFrameTime =
+                        delta;
+
+                }
+
+
+                frames++;
+
+            }
+
+
+            const elapsed =
+
+                now -
+                fpsStart;
+
+
+            if (
+                elapsed >= 1000
+            ) {
+
+                const fps =
+
+                    Math.round(
+
+                        frames *
+                        1000 /
+                        elapsed
+
+                    );
+
+
+                fpsElement.textContent =
+                    fps;
+
+
+                frameElement.textContent =
+
+                    currentFrameTime.toFixed(
+                        2
+                    );
+
+
+                peakElement.textContent =
+
+                    peakFrameTime.toFixed(
+                        2
+                    );
+
+
+                frames = 0;
+
+                peakFrameTime = 0;
+
+                fpsStart = now;
+
+            }
+
+
+            requestAnimationFrame(
+                monitor
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            monitor
+        );
+
+
+    </script>
+
+
+</body>
+
+</html>

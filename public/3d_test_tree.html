@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dédalo F-001 · Three.js</title>
+
+
+    <!-- =========================================
+         THREE.JS local
+    ========================================= -->
+
+    <script src="./assets/vendor/three/0.160.1/three.min.js"></script>
+
+
+    <style>
+
+        /* =========================================
+           BASE
+        ========================================= */
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+            background: #000;
+        }
+
+
+        /* =========================================
+           THREE CONTAINER
+        ========================================= */
+
+        #three-container {
+
+            position: fixed;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+        }
+
+
+        #three-container canvas {
+
+            display: block;
+
+            width: 100%;
+            height: 100%;
+
+        }
+
+
+        /* =========================================
+           DÉDALO · FRONT CONSOLE
+        ========================================= */
+
+        #dedalo-console {
+
+            position: fixed;
+
+            top: 16px;
+            left: 16px;
+
+            z-index: 9999;
+
+            min-width: 220px;
+
+            padding: 14px 16px;
+
+            color: #d7ffe4;
+
+            background:
+                rgba(5, 15, 10, 0.82);
+
+            border:
+                1px solid rgba(120, 255, 170, 0.25);
+
+            border-radius: 12px;
+
+            font-family:
+                monospace;
+
+            font-size: 12px;
+
+            line-height: 1.65;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            backdrop-filter:
+                blur(8px);
+
+            -webkit-backdrop-filter:
+                blur(8px);
+
+        }
+
+
+        #dedalo-console strong {
+
+            color: #7cffab;
+
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 350px) {
+
+            #dedalo-console {
+
+                top: 8px;
+                left: 8px;
+
+                min-width: auto;
+
+                padding: 10px 12px;
+
+                font-size: 10px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         THREE CONTAINER
+    ========================================= -->
+
+    <div id="three-container"></div>
+
+
+
+    <!-- =========================================
+         DÉDALO · PERFORMANCE CONSOLE
+    ========================================= -->
+
+    <div id="dedalo-console">
+
+        <strong>
+            DÉDALO · F-001
+        </strong>
+
+        <br>
+
+        Engine:
+        Three.js
+
+        <br>
+
+        FPS:
+        <span id="fps">
+            --
+        </span>
+
+        <br>
+
+        Frame:
+        <span id="frame">
+            --
+        </span>
+        ms
+
+        <br>
+
+        Peak:
+        <span id="peak">
+            --
+        </span>
+        ms
+
+        <br>
+
+        DPR:
+        <span id="dpr">
+            --
+        </span>
+
+        <br>
+
+        Viewport:
+        <span id="viewport">
+            --
+        </span>
+
+        <br>
+
+        Visibility:
+        <span id="visibility">
+            --
+        </span>
+
+        <br>
+
+        Load:
+        <span id="load">
+            --
+        </span>
+
+    </div>
+
+
+
+    <!-- =========================================
+         THREE.JS · PANORAMA 360
+    ========================================= -->
+
+    <script>
+
+
+        /* =========================================
+           DÉDALO F-001
+
+           PANORAMA 360
+           THREE.JS
+
+           Condiciones equivalentes:
+
+           - Misma imagen
+           - Giro automático
+           - Sin efectos
+           - Sin cubo
+           - Sin partículas
+           - Pausa visual en segundo plano
+        ========================================= */
+
+
+        const container =
+
+            document.getElementById(
+                'three-container'
+            );
+
+
+        /* =========================================
+           SCENE
+        ========================================= */
+
+        const scene =
+
+            new THREE.Scene();
+
+
+
+        /* =========================================
+           CAMERA
+        ========================================= */
+
+        const camera =
+
+            new THREE.PerspectiveCamera(
+
+                75,
+
+                window.innerWidth /
+                window.innerHeight,
+
+                0.1,
+
+                1000
+
+            );
+
+
+        camera.position.set(
+            0,
+            0,
+            0
+        );
+
+
+
+        /* =========================================
+           RENDERER
+        ========================================= */
+
+        const renderer =
+
+            new THREE.WebGLRenderer({
+
+                antialias: true
+
+            });
+
+
+        renderer.setSize(
+
+            window.innerWidth,
+
+            window.innerHeight
+
+        );
+
+
+        /*
+         * Igual que en A-Frame, permitimos
+         * que el navegador utilice su DPR real.
+         */
+
+        renderer.setPixelRatio(
+            window.devicePixelRatio
+        );
+        
+        renderer.outputColorSpace =
+          THREE.SRGBColorSpace;
+
+
+        container.appendChild(
+            renderer.domElement
+        );
+
+
+
+        /* =========================================
+           PANORAMA
+        ========================================= */
+
+        const textureLoader =
+
+            new THREE.TextureLoader();
+
+
+        let panorama = null;
+
+
+        textureLoader.load(
+
+            './assets/panorama/test3.jpg',
+
+
+            function (texture) {
+            
+            texture.colorSpace =
+            THREE.SRGBColorSpace;
+
+
+                /*
+                 * Panorama equirectangular.
+                 */
+
+                const geometry =
+
+                    new THREE.SphereGeometry(
+
+                        100,
+
+                        64,
+
+                        40
+
+                    );
+
+
+                /*
+                 * La esfera se invierte para
+                 * observar el interior.
+                 */
+
+                geometry.scale(
+                    -1,
+                    1,
+                    1
+                );
+
+
+                const material =
+
+                    new THREE.MeshBasicMaterial({
+
+                        map: texture
+
+                    });
+
+
+                panorama =
+
+                    new THREE.Mesh(
+
+                        geometry,
+
+                        material
+
+                    );
+
+
+                /*
+                 * Equivalente visual aproximado
+                 * al rotation="0 -90 0"
+                 * usado en A-Frame.
+                 */
+
+                panorama.rotation.y =
+
+                    THREE.MathUtils.degToRad(
+                        -90
+                    );
+
+
+                scene.add(
+                    panorama
+                );
+
+
+            },
+
+            undefined,
+
+
+            function (error) {
+
+                console.error(
+
+                    'Error al cargar panorama:',
+
+                    error
+
+                );
+
+            }
+
+        );
+
+
+
+        /* =========================================
+           AUTO ROTATE
+        ========================================= */
+
+
+        /*
+         * 2 grados por segundo,
+         * equivalente a la prueba A-Frame.
+         */
+
+        const rotationSpeed =
+
+            THREE.MathUtils.degToRad(
+                2
+            );
+
+
+        let lastRenderTime =
+
+            performance.now();
+
+
+        let isVisible =
+
+            document.visibilityState ===
+            'visible';
+
+
+
+        /* =========================================
+           ANIMATION LOOP
+        ========================================= */
+
+        function animate(now) {
+
+
+            /*
+             * Si la pestaña no está visible,
+             * no actualizamos la escena.
+             *
+             * requestAnimationFrame puede ser
+             * reducido o pausado por el navegador.
+             */
+
+            if (!isVisible) {
+
+                lastRenderTime = now;
+
+                requestAnimationFrame(
+                    animate
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * DELTA TIME
+             */
+
+            const deltaTime =
+
+                (
+                    now -
+                    lastRenderTime
+                ) / 1000;
+
+
+            lastRenderTime = now;
+
+
+
+            /*
+             * ROTACIÓN DEL PANORAMA
+             */
+
+            if (panorama) {
+
+                panorama.rotation.y +=
+
+                    rotationSpeed *
+                    deltaTime;
+
+            }
+
+
+
+            /*
+             * RENDER
+             */
+
+            renderer.render(
+                scene,
+                camera
+            );
+
+
+            requestAnimationFrame(
+                animate
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            animate
+        );
+
+
+
+        /* =========================================
+           RESIZE
+        ========================================= */
+
+        window.addEventListener(
+
+            'resize',
+
+            () => {
+
+
+                camera.aspect =
+
+                    window.innerWidth /
+                    window.innerHeight;
+
+
+                camera.updateProjectionMatrix();
+
+
+                renderer.setSize(
+
+                    window.innerWidth,
+
+                    window.innerHeight
+
+                );
+
+
+                renderer.setPixelRatio(
+
+                    window.devicePixelRatio
+
+                );
+
+
+                updateViewport();
+
+            }
+
+        );
+
+
+
+        /* =========================================
+           DÉDALO PERFORMANCE MONITOR
+        ========================================= */
+
+
+        const fpsElement =
+
+            document.getElementById(
+                'fps'
+            );
+
+
+        const frameElement =
+
+            document.getElementById(
+                'frame'
+            );
+
+
+        const peakElement =
+
+            document.getElementById(
+                'peak'
+            );
+
+
+        const dprElement =
+
+            document.getElementById(
+                'dpr'
+            );
+
+
+        const viewportElement =
+
+            document.getElementById(
+                'viewport'
+            );
+
+
+        const visibilityElement =
+
+            document.getElementById(
+                'visibility'
+            );
+
+
+        const loadElement =
+
+            document.getElementById(
+                'load'
+            );
+
+
+
+        /* =========================================
+           DEVICE INFO
+        ========================================= */
+
+        dprElement.textContent =
+
+            window.devicePixelRatio;
+
+
+
+        function updateViewport() {
+
+            viewportElement.textContent =
+
+                `${window.innerWidth} × ${window.innerHeight}`;
+
+        }
+
+
+        updateViewport();
+
+
+
+        /* =========================================
+           VISIBILITY
+        ========================================= */
+
+        function updateVisibility() {
+
+
+            isVisible =
+
+                document.visibilityState ===
+                'visible';
+
+
+            visibilityElement.textContent =
+
+                document.visibilityState;
+
+
+            /*
+             * Al regresar, reiniciamos el reloj
+             * para evitar un delta gigante.
+             */
+
+            lastRenderTime =
+
+                performance.now();
+
+        }
+
+
+        updateVisibility();
+
+
+        document.addEventListener(
+
+            'visibilitychange',
+
+            updateVisibility
+
+        );
+
+
+
+        /* =========================================
+           LOAD TIME
+        ========================================= */
+
+        window.addEventListener(
+
+            'load',
+
+            () => {
+
+
+                const loadTime =
+
+                    performance.now() /
+                    1000;
+
+
+                loadElement.textContent =
+
+                    `${loadTime.toFixed(2)} s`;
+
+            }
+
+        );
+
+
+
+        /* =========================================
+           PERFORMANCE MONITOR
+
+           Misma lógica utilizada en A-Frame.
+        ========================================= */
+
+
+        let lastFrameTime =
+
+            performance.now();
+
+
+        let fpsStartTime =
+
+            performance.now();
+
+
+        let frames = 0;
+
+
+        let currentFrameTime = 0;
+
+
+        let peakFrameTime = 0;
+
+
+
+        function monitor(now) {
+
+
+            const delta =
+
+                now -
+                lastFrameTime;
+
+
+            lastFrameTime = now;
+
+
+
+            if (
+
+                document.visibilityState ===
+                'visible'
+
+            ) {
+
+
+                currentFrameTime =
+
+                    delta;
+
+
+                if (
+
+                    delta >
+                    peakFrameTime
+
+                ) {
+
+                    peakFrameTime =
+
+                        delta;
+
+                }
+
+
+                frames++;
+
+            }
+
+
+
+            const elapsed =
+
+                now -
+                fpsStartTime;
+
+
+
+            if (
+
+                elapsed >= 1000
+
+            ) {
+
+
+                const fps =
+
+                    Math.round(
+
+                        frames *
+                        1000 /
+                        elapsed
+
+                    );
+
+
+                fpsElement.textContent =
+
+                    fps;
+
+
+                frameElement.textContent =
+
+                    currentFrameTime.toFixed(
+                        2
+                    );
+
+
+                peakElement.textContent =
+
+                    peakFrameTime.toFixed(
+                        2
+                    );
+
+
+                frames = 0;
+
+                peakFrameTime = 0;
+
+                fpsStartTime = now;
+
+            }
+
+
+            requestAnimationFrame(
+                monitor
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            monitor
+        );
+
+    </script>
+
+
+</body>
+
+</html>

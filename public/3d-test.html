@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <title>SyM · 360 Environment Lab</title>
+
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <style>
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+            background: #050807;
+        }
+
+        a-scene {
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <a-scene
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        embedded>
+
+        <!--
+            ENTORNO 360
+        -->
+
+        <a-sky
+            id="panorama"
+            src="./assets/panorama/test3.jpg"
+            rotation="0 -90 0">
+        </a-sky>
+
+
+        <!--
+            CÁMARA
+        -->
+
+        <a-camera
+            id="camera"
+            position="0 0 0"
+            look-controls="enabled: true">
+
+        </a-camera>
+
+    </a-scene>
+
+
+    <script>
+
+        /*
+        --------------------------------------------------
+        CONFIGURACIÓN
+        --------------------------------------------------
+        */
+
+        const panorama =
+            document.getElementById("panorama");
+
+        const camera =
+            document.getElementById("camera");
+
+
+        /*
+        --------------------------------------------------
+        VELOCIDAD DE GIRO
+        --------------------------------------------------
+
+        Muy pequeña porque queremos que el entorno
+        "respire", no que parezca una animación.
+        */
+
+        const rotationSpeed = 0.003;
+
+
+        /*
+        --------------------------------------------------
+        ESTADO
+        --------------------------------------------------
+        */
+
+        let automaticRotation = true;
+
+        let lastTime = performance.now();
+
+
+        /*
+        --------------------------------------------------
+        DETECTAR INTERACCIÓN
+        --------------------------------------------------
+
+        Cuando el usuario mueve la cámara,
+        detenemos temporalmente el giro automático.
+        */
+
+        const scene =
+            document.querySelector("a-scene");
+
+
+        scene.addEventListener(
+            "mousedown",
+            () => {
+
+                automaticRotation = false;
+
+            }
+        );
+
+
+        scene.addEventListener(
+            "touchstart",
+            () => {
+
+                automaticRotation = false;
+
+            },
+            { passive: true }
+        );
+
+
+        /*
+        --------------------------------------------------
+        VOLVER AL GIRO AUTOMÁTICO
+        --------------------------------------------------
+
+        Después de unos segundos sin interacción,
+        retomamos lentamente.
+        */
+
+        let lastInteraction =
+            performance.now();
+
+
+        function registerInteraction() {
+
+            automaticRotation = false;
+
+            lastInteraction =
+                performance.now();
+
+        }
+
+
+        scene.addEventListener(
+            "mousedown",
+            registerInteraction
+        );
+
+
+        scene.addEventListener(
+            "touchstart",
+            registerInteraction,
+            { passive: true }
+        );
+
+
+        /*
+        --------------------------------------------------
+        ANIMACIÓN
+        --------------------------------------------------
+        */
+
+        function animate(time) {
+
+            requestAnimationFrame(
+                animate
+            );
+
+
+            const delta =
+                (time - lastTime) / 1000;
+
+
+            lastTime = time;
+
+
+            /*
+            Después de 5 segundos sin interacción
+            retomamos el movimiento.
+            */
+
+            if (
+                !automaticRotation &&
+                time - lastInteraction > 5000
+            ) {
+
+                automaticRotation = true;
+
+            }
+
+
+            /*
+            Giro automático
+            */
+
+            if (automaticRotation) {
+
+                const rotation =
+                    panorama.getAttribute(
+                        "rotation"
+                    );
+
+
+                panorama.setAttribute(
+                    "rotation",
+                    {
+                        x: rotation.x,
+
+                        y:
+                            rotation.y +
+                            rotationSpeed *
+                            delta *
+                            60,
+
+                        z: rotation.z
+                    }
+                );
+
+            }
+
+        }
+
+
+        requestAnimationFrame(
+            animate
+        );
+
+    </script>
+
+</body>
+
+</html>
